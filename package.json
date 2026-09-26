@@ -1,0 +1,18 @@
+{
+  "name": "coody",
+  "version": "1.0.0",
+  "description": "Ecosystem simulation",
+  "license": "MIT",
+  "author": "dipen.bagia@gmail.com",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "simulate": "node ./src/index.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}
