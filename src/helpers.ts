@@ -59,6 +59,14 @@ function moveDiagonal(xPos: number, yPos: number, step: number) {
   };
 }
 
+export function getOrThrow<K, V>(key: K, map: Map<K, V>): V {
+  const value = map.get(key);
+  if (value === undefined) {
+    throw new Error(`Key ${String(key)} does not exist`);
+  }
+  return value;
+}
+
 export function shouldReproduce(
   entityId: Id,
   entityConfig: EntityConfig,
@@ -77,19 +85,25 @@ export function shouldReproduce(
 
   const { reproductionKind } = entityConfig;
 
-  if (reproductionKind === "energy") {
-    // if energy > maxEnergy, reproduce
-    const maxEnergy = entityConfig.maxEnergy;
-    const entityEnergy = entityMap.get(entityId)!.energy;
-    return entityEnergy >= maxEnergy;
-  } else if (reproductionKind === "tick") {
-    // if entity has lived until reproductionRate, reproduce
-    const reproductionRate = entityConfig.reproductionRate;
-    const entityAge = entityMap.get(entityId)!.age;
-    return entityAge && entityAge % reproductionRate === 0;
-  }
+  switch (reproductionKind) {
+    case "energy": {
+      // if energy > maxEnergy, reproduce
+      const maxEnergy = entityConfig.maxEnergy;
+      const entityEnergy = getOrThrow(entityId, entityMap).energy
+      return entityEnergy >= maxEnergy;
+    }
+    case "tick": {
+      // if entity has lived until reproductionRate, reproduce
+      const reproductionRate = entityConfig.reproductionRate;
+      const entityAge = getOrThrow(entityId, entityMap).age
+      return entityAge && entityAge % reproductionRate === 0;
+    }
 
-  throw new Error(`Unknown reproductionKind: ${reproductionKind}`);
+    default:
+      /* eslint-disable */
+      throw new Error(`Unknown reproductionKind: ${reproductionKind}`);
+      /* eslint-enable */
+  }
 }
 
 export function checkAndKillAnimal(
@@ -100,9 +114,9 @@ export function checkAndKillAnimal(
   if (!entityMap.has(entityId)) {
     return true;
   }
-  if (entityMap.get(entityId)!.energy <= 0) {
+  if (getOrThrow(entityId, entityMap).energy <= 0) {
     console.log(
-      `Energy is below 0, the ${entityStorage.entityType} will die ${entityId}`,
+      `Energy is below 0, the ${entityStorage.entityType} will die ${String(entityId)}`,
     );
     removeEntity(entityStorage)(entityId);
     return true;
@@ -161,11 +175,11 @@ export function eatAndGainEnergyIfFoodExistsAt(
   allPrey.forEach((preyId: Id) => {
     removeEntity(preyStorage)(preyId);
     predatorMap.set(predatorId, {
-      ...predatorMap.get(predatorId)!,
-      energy: predatorMap.get(predatorId)!.energy + energyFromFood,
+      ...getOrThrow(predatorId, predatorMap),
+      energy: getOrThrow(predatorId, predatorMap).energy + energyFromFood,
     });
     console.log(
-      `Updated predator ${predatorId}'s energy to ${predatorMap.get(predatorId)!.energy}`,
+      `Updated predator ${String(predatorId)}'s energy to ${getOrThrow(predatorId, predatorMap).energy.toString()}`,
     );
   });
 }
@@ -175,11 +189,12 @@ export function generateOffspringId(entityMap: Map<Id, Entity>) {
 }
 
 export function toPositive(n: number): Positive {
-  if (n <= 0) throw new Error(`Expected positive number, got ${n}`);
+  if (n <= 0) throw new Error(`Expected positive number, got ${String(n)}`);
   return n as Positive;
 }
 
-const posKey = (pos: Position): string => `${pos.x},${pos.y}`;
+const posKey = (pos: Position): string =>
+  `${String(pos.x)},${String(pos.y)}`;
 
 // AI generated
 export function createStorageForEntity(entityType: EntityType): EntityStorage {
@@ -220,7 +235,7 @@ export const addEntity =
     if (!posToEntity.has(key)) {
       posToEntity.set(key, new Set());
     }
-    posToEntity.get(key)!.add(entityId);
+    getOrThrow(key, posToEntity).add(entityId);
   };
 
 export const changeEntityPosition =
@@ -307,7 +322,7 @@ export const updateEntityEnergy = (
   entityMap: Map<Id, Entity>,
   entityConfig: EntityConfig,
 ) => {
-  const entity = entityMap.get(entityId)!;
+  const entity = getOrThrow(entityId, entityMap);
   const { energyChangePerTick } = entityConfig;
   const newEnergy = entity.energy + energyChangePerTick;
   // Update current plant's energy
@@ -323,7 +338,7 @@ export const incrementEntityAge = (
     console.error("Cannot increment age. Entity does not exist", { entityId });
     return;
   }
-  const entity = entityMap.get(entityId)!;
+  const entity = getOrThrow(entityId, entityMap);
   entityMap.set(entityId, { ...entity, age: entity.age + 1 });
-  return entityMap.get(entityId);
+  return getOrThrow(entityId, entityMap);
 };

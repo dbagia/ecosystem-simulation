@@ -1,7 +1,7 @@
 export type Energy = number;
 export type Id = number;
 
-export type Entity = {
+export interface Entity {
   energy: Energy;
   age: number;
 };
@@ -23,14 +23,14 @@ export type EntityConfig = ReproductionConfig & {
   stepConfig: StepConfig;
 };
 
-export type Position = {
+export interface Position {
   x: number;
   y: number;
 };
 
 export type EntityType = "plant" | "herbivore" | "carnivore";
 
-export type EntityStorage = {
+export interface EntityStorage {
   entityType: EntityType;
   entityToPos: Map<number, Position>;
   posToEntity: Map<string, Set<number>>;

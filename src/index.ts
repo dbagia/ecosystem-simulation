@@ -12,6 +12,7 @@ import {
 } from "./data.ts";
 
 import {
+  getOrThrow,
   getEntityPosition,
   updateEntityEnergy,
   incrementEntityAge,
@@ -37,7 +38,7 @@ function processPlants() {
 
     if (shouldReproduce(id, plantConfig, map)) {
       console.log(
-        `Plant ${id} with energy ${map.get(id)!.energy} will reproduce`,
+        `Plant ${String(id)} with energy ${String(getOrThrow(id, map).energy)} will reproduce`,
       );
       const offspringId = generateOffspringId(map);
       // create new offspring
@@ -45,7 +46,7 @@ function processPlants() {
       // place the offspring in the same cell as its parent
       addPlant(offspringId, plantPosition);
       // reset current plant's energy
-      map.set(id, { ...map.get(id)!, energy: 5 });
+      map.set(id, { ...getOrThrow(id, map), energy: 5 });
     }
   });
 }
@@ -58,7 +59,7 @@ function processHerbivores() {
     }
 
     updateEntityEnergy(id, map, herbivoreConfig);
-    incrementEntityAge(id, map)!;
+    incrementEntityAge(id, map);
 
     if (checkAndKillAnimal(id, map, herbivoreStorage)) {
       return;
@@ -85,10 +86,10 @@ function processHerbivores() {
     }
 
     console.log(
-      `Herbivore ${id} with energy ${map.get(id)!.energy} will reproduce`,
+      `Herbivore ${String(id)} with energy ${String(getOrThrow(id, map).energy)} will reproduce`,
     );
     const offspringId = generateOffspringId(map);
-    console.log(`New herbivore offspring is ${offspringId}`);
+    console.log(`New herbivore offspring is ${String(offspringId)}`);
     // create new offspring
     map.set(offspringId, { age: 0, energy: 7 });
     // place the offspring in the same cell as its parent
@@ -99,7 +100,7 @@ function processHerbivores() {
     });
     addHerbivore(offspringId, newPosition);
     // reset current herbivore's energy
-    map.set(id, { ...map.get(id)!, energy: 7 });
+    map.set(id, { ...getOrThrow(id, map), energy: 7 });
   });
 }
 
@@ -112,7 +113,7 @@ function processCarnivores() {
     }
 
     updateEntityEnergy(id, map, carnivoreConfig);
-    incrementEntityAge(id, map)!;
+    incrementEntityAge(id, map);
 
     if (checkAndKillAnimal(id, map, carnivoreStorage)) {
       return;
@@ -138,11 +139,11 @@ function processCarnivores() {
       return;
     }
 
-    const parentEnergy = map.get(id)!.energy;
+    const parentEnergy = getOrThrow(id, map).energy;
     const splitEnergy = Math.round(parentEnergy / 2);
-    console.log(`Carnivore ${id} with energy ${parentEnergy} will reproduce`);
+    console.log(`Carnivore ${String(id)} with energy ${String(parentEnergy)} will reproduce`);
     const offspringId = generateOffspringId(map);
-    console.log(`New carnivore offspring is ${offspringId}`);
+    console.log(`New carnivore offspring is ${String(offspringId)}`);
     // create new offspring
     map.set(offspringId, { age: 0, energy: splitEnergy });
     // place the offspring in the same cell as its parent
@@ -153,7 +154,7 @@ function processCarnivores() {
     });
     addCarnivore(offspringId, newPosition);
     // reset current carnivore's energy
-    map.set(id, { ...map.get(id)!, energy: splitEnergy });
+    map.set(id, { ...getOrThrow(id, map), energy: splitEnergy });
   });
 }
 
@@ -179,11 +180,11 @@ function main() {
   const intervalId = setInterval(() => {
     count++;
     console.log(
-      `----------------------------Tick ${count}----------------------------`,
+      `----------------------------Tick ${String(count)}----------------------------`,
     );
     beginSimulation();
     if (count >= 100) {
-      console.log(`Total ticks ran: ${count}`);
+      console.log(`Total ticks ran: ${String(count)}`);
       clearInterval(intervalId);
     }
   }, 1000);
